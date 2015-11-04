@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>JS Betting Game</title>
+
+    <link rel='stylesheet' type='text/css' href='BettingGame.css'/>
+</head>
+
+<body>
+<h1>JS Betting Game</h1>
+
+<div id="container">
+    <div id="currentMoney"></div>
+    <div id="betDiv">
+        <label>Enter a bet amount below: </label>
+        <div>
+            <input type="text" name="betNum" id="betNum">
+            <!--<button class="playButton" id="betButton"><strong>Play!</strong></button>-->
+        </div>
+    </div>
+
+    <div id="guessDiv">
+        <label>Enter your guess below: </label>
+        <div>
+            <input type="text" name="guessNum" id="guessNum">
+            <!--<button class="playButton" id="guessButton"><strong>Your Guess</strong></button>-->
+        </div>
+    </div>
+
+    <div id="buttonLocation">
+        <button class="playButton" id="restartButton"><strong>Restart Game</strong></button>
+        <button class="playButton" id="betButton"><strong>Play!</strong></button>
+    </div>
+</div>
+
+<div id="alerts"></div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.10.1/lodash.js"></script>
+<script> type="text/javascript" src="BettingGame.js"></script>
+</body>
+</html>
