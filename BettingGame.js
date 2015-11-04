@@ -8,9 +8,16 @@ $(function() {
     //    $("betButton").fadeTo("slow",0.5);
     //});
 
-    //MODEL
+    //  MODEL/CONSTANTS
+    var INITIALMONEY = 100;
+    var MINBET = 5;
+    var MAXBET = 10;
+    var MINGUESS = 1;
+    var MAXGUESS = 10;
+    var LOSSCONDITION = 0;
+
     var gameStore = {
-        money: 100
+        money: INITIALMONEY
     };
 
     function getMoney(){
@@ -21,32 +28,20 @@ $(function() {
         gameStore.money = value;
     }
 
-
-    var initialMoney = 100;
-    //var currentMoney = initialMoney;
-    var minBet = 5;
-    var maxBet = 10;
-    var minGuess = 1;
-    var maxGuess = 10;
-    //var userBet = $("#betNum");
-    //var userGuess = $("#guessNum");
-
-
-
     // FORM HELPERS
     function getBetValue(){
-        return parseInt($("#betNum").val());
+        return parseInt($("#betNum").val(), 10);
     }
 
     function getGuessValue(){
-        return parseInt($("#guessNum").val());
+        return parseInt($("#guessNum").val(), 10);
     }
 
     // RENDER
     function renderAlert(message){
-        $("#alerts").html("<div>"+ message + "</div>");
+        $("#alerts div").text(message);
     }
-
+    //maybe change html rendering to text rendering too to prevent bobby droptable?
     function renderCurrentMoney(money) {
         $("#currentMoney").html("<div>You currently have $" + money + "</div>");
     }
@@ -56,8 +51,12 @@ $(function() {
         return (betNum <= money);
     }
 
-    function withinBetRange(betNum){
-        return (betNum < minBet || betNum > maxBet);
+    function withinBetRange(betNum) {
+        return (betNum < MINBET || betNum > MAXBET);
+    }
+
+    function withinGuessRange(guess) {
+        return (guess < MINGUESS || guess > MAXGUESS);
     }
 
     function verifyWin(guess,winningNum) {
@@ -71,27 +70,25 @@ $(function() {
     function verifyBet(betNum) {
         var money = getMoney();
         var message;
+        var validBet = false;
 
         if (!hasEnoughMoney(betNum, money)) {
             message = "You don't have enough money! Please bet " + money + " or lower!";
-            renderAlert(message);
-            return false;
         } else if (withinBetRange(betNum)) {
-            message = "Please place your bet between " + minBet + " and " + maxBet;
-            renderAlert(message);
-            return false;
+            message = "Please place your bet between " + MINBET + " and " + MAXBET;
         } else {
             message = "You bet " + betNum + "dollars";
+            validBet = true;
         }
         renderAlert(message);
-        return true;
+        return validBet;
     }
 
     function verifyGuess(guess) {
         var message;
 
-        if (guess < minGuess || guess > maxGuess) {
-            message = "Please guess a number between " + minGuess + " and " + maxGuess;
+        if (withinGuessRange(guess)) {
+            message = "Please guess a number between " + MINGUESS + " and " + MAXGUESS;
             renderAlert(message);
             return false;
         } else {
@@ -100,33 +97,48 @@ $(function() {
     }
 
     function genWinningNum() {
-        return Math.floor(Math.random() * (maxGuess - minGuess + 1)) + minGuess;
+        return Math.floor(Math.random() * (MAXGUESS - MINGUESS + 1)) + MINGUESS;
+    }
+
+    function gameOver(money) {
+        return money <= LOSSCONDITION;
+    }
+
+    function processWin(money, bet) {
+        money += bet;
+        var message = "You won! You gained  " + bet + " dollars and you now have " + money;
+        setMoney(money);
+        renderCurrentMoney(money);
+        renderAlert(message);
+    }
+
+    function processEven(money, winningNum) {
+        var message = "You were close! The correct number was " + winningNum + ". You didn't gain anything and you still have " + money + "dollars remaining";
+        renderAlert(message);
+    }
+
+    function processLoss(money, bet, winningNum) {
+        money -= bet;
+        setMoney(money);
+        renderCurrentMoney(money);
+        var message = "Not even close! The correct number was " + winningNum + ".";
+        if (gameOver(money)) {
+            message += " Game Over!";
+        } else {
+            message += " You lost " + bet + " dollars and now have " + money + "dollars remaining.";
+        }
+        renderAlert(message);
     }
 
     function gamble(money, guess, bet) {
         var winningNum = genWinningNum();
-        var message;
 
         if (verifyWin(guess,winningNum)) {
-            money += bet;
-            message = "You won! You gained  " + bet + " dollars and you now have " + money;
-            setMoney(money);
-            renderCurrentMoney(money);
-            renderAlert(message);
+            processWin(money,bet);
         } else if (verifyEven(guess,winningNum)) {
-            message = "You were close! The correct number was " + winningNum + ". You didn't gain anything and you still have " + money + "dollars remaining";
-            renderAlert(message);
+            processEven(money, winningNum);
         } else {
-            money -= bet;
-            setMoney(money);
-            renderCurrentMoney(money);
-            if (money <= 0) {
-                message = "Not even close! The correct number was " + winningNum + ". Game Over!";
-                renderAlert(message);
-            } else {
-                message = "Not even close! The correct number was " + winningNum + ". You lost " + bet + " dollars and now have " + money + "dollars remaining.";
-                renderAlert(message);
-            }
+            processLoss(money,bet, winningNum);
         }
     }
 
@@ -140,10 +152,12 @@ $(function() {
             gamble(money,guess,bet);
         }
     });
-//TODO encapsulate the initial money
+
     $("#restartButton").on("click", function() {
-        setMoney(initialMoney);
-        var message = "Your current balance has been reset to $" + initialMoney;
+        setMoney(INITIALMONEY);
+        renderCurrentMoney(INITIALMONEY);
+        //maybe better to display current money value instead of INITIALMONEY?
+        var message = "Your current balance has been reset to $" + INITIALMONEY;
         renderAlert(message);
     });
 
